@@ -1,0 +1,301 @@
+{% extends 'main_app/base.html' %}
+{% load static %}
+{% block page_title %}{{ page_title|title }}{% endblock page_title %}
+
+{% block custom_css %}
+<style>
+    .profile-pic-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 150px;
+        height: 150px;
+        margin: 0 auto;
+    }
+    .profile-pic-container img, .profile-pic-container div {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+    .profile-pic-container div {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #f0f0f0;
+    }
+    .table-large {
+        font-size: 1.1rem;
+    }
+    .table-large th {
+        width: 35% !important;
+    }
+    .card-body {
+        padding: 1rem !important;
+    }
+    .no-margin-bottom {
+        margin-bottom: 0 !important;
+    }
+    .org-table {
+        min-height: 350px; /* Increased height for Organization Details table */
+        max-height: 300px; /* Limits the height */
+        overflow-y: auto; /* Enables vertical scrolling */
+    }
+</style>
+{% endblock custom_css %}
+
+{% block content %}
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Employee Details</h3>
+                        <div class="card-tools">
+                            {% if request.user.user_type == '2' %}
+                                <a href="{% url 'edit_employee_by_manager' employee.id %}" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-edit"></i> Edit
+                                </a>
+                            {% else %}
+                                <a href="{% url 'edit_employee' employee.id %}" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-edit"></i> Edit
+                                </a>
+                            {% endif %}
+                            <a href="{% url 'manage_employee' %}" class="btn btn-secondary btn-sm">
+                                <i class="fas fa-arrow-left"></i> Back
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="profile-pic-container no-margin-bottom">
+                                    {% if employee.admin.profile_pic %}
+                                        <img src="{{ employee.admin.profile_pic }}" class="img-fluid rounded-circle" alt="Profile Picture">
+                                    {% else %}
+                                        <div class="bg-light rounded-circle d-flex align-items-center justify-content-center">
+                                            <i class="fas fa-user fa-3x text-muted"></i>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <h4 class="mt-2 mb-1 text-center">{{ employee.admin.get_full_name|title }}</h4>
+                                <p class="text-muted text-center mb-0">{{ employee.designation|default:"-"|title }}</p>
+                                <div class="card card-info card-outline mt-2">
+                                    <div class="card-header">
+                                        <h3 class="card-title">Organization Details</h3>
+                                    </div>
+                                    <div class="card-body">
+                                        <table class="table table-bordered org-table">
+                                            <tr>
+                                                <th style="width: 35%">Department</th>
+                                                <td>{{ employee.department.name|default:"-"|title }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Designation</th>
+                                                <td>{{ employee.designation|default:"-"|title }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Team Lead</th>
+                                                <td>{{ employee.team_lead|default:"-"|title }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Agreement Start</th>
+                                                <td>{{ employee.bond_start|default:"-" }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Agreement End</th>
+                                                <td>{{ employee.bond_end|default:"-" }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Remaining Agreement</th>
+                                                <td id="remaining-bond">{{ employee.remaining_bond|default:"-" }} days</td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-9">
+                                <div class="card card-primary card-outline">
+                                    <div class="card-header">
+                                        <h3 class="card-title">Basic Information</h3>
+                                    </div>
+                                    <div class="card-body">
+                                        <table class="table table-bordered table-large">
+                                            <tr>
+                                                <th>Employee ID</th>
+                                                <td>{{ employee.employee_id|default:"-" }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Full Name</th>
+                                                <td>{{ employee.admin.get_full_name|title }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Email</th>
+                                                <td>{{ employee.admin.email }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Phone</th>
+                                                <td>{{ employee.phone_number|default:"-" }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Gender</th>
+                                                <td>{{ employee.admin.gender|default:"-"|title }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Aadhar Card</th>
+                                                <td>{{ employee.aadhar_card|default:"-" }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>PAN Card</th>
+                                                <td>{{ employee.pan_card|default:"-" }}</td>
+                                            </tr>
+                                            
+                                        </table>
+                                    </div>
+                                </div>
+                                <div class="card card-warning card-outline">
+                                    <div class="card-header">
+                                        <h3 class="card-title">Emergency Contact</h3>
+                                    </div>
+                                    <div class="card-body">
+                                        {% if employee.emergency_contact %}
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <table class="table table-bordered">
+                                                    <tr>
+                                                        <th style="width: 35%">Contact Name</th>
+                                                        <td>{{ employee.emergency_contact.name|default:"-"|title }}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>Relationship</th>
+                                                        <td>{{ employee.emergency_contact.relationship|default:"-"|title }}</td>
+                                                    </tr>
+                                                </table>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <table class="table table-bordered">
+                                                    <tr>
+                                                        <th style="width: 35%">Phone</th>
+                                                        <td>{{ employee.emergency_contact.phone|default:"-" }}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>Address</th>
+                                                        <td>{{ employee.emergency_contact.address|default:"-"|title }}</td>
+                                                    </tr>
+                                                </table>
+                                            </div>
+                                        </div>
+                                        {% else %}
+                                        <div class="alert alert-info">
+                                            No emergency contact information available
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock content %}
+
+{% block custom_js %}
+<script>
+$(document).ready(function() {
+    // Aadhar Card validation
+    $(document).on('input', '#id_aadhar_card', function() {
+        const original = this.value;
+        const digitsOnly = original.replace(/\D/g, '');
+        const warningId = this.id + "_warning";
+
+        $("#" + warningId).remove();
+
+        if (original !== digitsOnly) {
+            $("<span id='" + warningId + "' class='invalid d-block mt-1'>Aadhar Card number must contain only digits</span>").insertAfter(this);
+            this.value = digitsOnly;
+            return;
+        }
+
+        this.value = digitsOnly;
+
+        if (digitsOnly.length > 0 && digitsOnly.length !== 12) {
+            $("<span id='" + warningId + "' class='invalid d-block mt-1'>Aadhar Card number must be exactly 12 digits</span>").insertAfter(this);
+        } else if (digitsOnly.length === 12) {
+            $("<span id='" + warningId + "' class='valid d-block mt-1'>Valid Aadhar Card number</span>").insertAfter(this);
+        }
+    });
+
+    $(document).on('keypress', '#id_aadhar_card', function(e) {
+        const charCode = e.which ? e.which : e.keyCode;
+        if (charCode < 48 || charCode > 57) { // Allow only 0-9
+            e.preventDefault();
+        }
+    });
+
+    // PAN Card validation
+    $(document).on('input', '#id_pan_card', function() {
+        const value = this.value.toUpperCase();
+        const warningId = this.id + "_warning";
+        const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+
+        $("#" + warningId).remove();
+
+        this.value = value;
+
+        if (value && !panRegex.test(value)) {
+            $("<span id='" + warningId + "' class='invalid d-block mt-1'>PAN Card number must be 5 letters, 4 digits, 1 letter</span>").insertAfter(this);
+        } else if (value.length === 10) {
+            $("<span id='" + warningId + "' class='valid d-block mt-1'>Valid PAN Card number</span>").insertAfter(this);
+        }
+    });
+
+    // Form submission validation
+    $(document).on('submit', 'form#profile-form', function(event) {
+        const aadharCard = $('#id_aadhar_card').val();
+        const panCard = $('#id_pan_card').val();
+        const aadharWarningId = 'id_aadhar_card_warning';
+        const panWarningId = 'id_pan_card_warning';
+
+        $("#" + aadharWarningId).remove();
+        $("#" + panWarningId).remove();
+
+        if (aadharCard && (aadharCard.length !== 12 || !/^\d+$/.test(aadharCard))) {
+            event.preventDefault();
+            $("<span id='" + aadharWarningId + "' class='invalid d-block mt-1'>Aadhar Card number must be exactly 12 digits and contain only digits</span>").insertAfter("#id_aadhar_card");
+        }
+
+        if (panCard && !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(panCard)) {
+            event.preventDefault();
+            $("<span id='" + panWarningId + "' class='invalid d-block mt-1'>PAN Card number must be 5 letters, 4 digits, 1 letter</span>").insertAfter("#id_pan_card");
+        }
+    });
+
+    // Calculate remaining bond dynamically
+    function updateRemainingBond() {
+        const bondEnd = "{{ employee.bond_end|date:'Y-m-d' }}" || null;
+        const remainingBondElement = $("#remaining-bond");
+        if (bondEnd) {
+            const today = new Date('2025-07-16T11:57:00+05:30'); // 11:57 AM IST, July 16, 2025
+            const endDate = new Date(bondEnd);
+            const todayDate = new Date(today.toDateString());
+            const endDateOnly = new Date(endDate.toDateString());
+            const delta = (endDateOnly - todayDate) / (1000 * 60 * 60 * 24); // Days difference
+            if (delta >= 0) {
+                remainingBondElement.text(Math.floor(delta) + " days");
+            } else {
+                remainingBondElement.text("0 days");
+            }
+        } else {
+            remainingBondElement.text("-");
+        }
+    }
+
+    // Run on page load
+    updateRemainingBond();
+});
+</script>
+{% endblock custom_js %}

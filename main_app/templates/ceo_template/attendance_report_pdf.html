@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+{% load static %}
+{% load custom_filters %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Report - {{ employee.admin.first_name }} {{ employee.admin.last_name }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        @page {
+            size: A4 portrait;
+            margin: 10mm;
+        }
+        body {
+            font-size: 9pt;
+            padding: 0;
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            color: #333;
+            background-color: #fff;
+        }
+        .container {
+            width: 100%;
+            max-width: 100%;
+            padding: 0;
+            margin: 0 auto;
+        }
+        .header {
+            border-bottom: 1px solid #0d6efd;
+            padding-bottom: 4px;
+            margin-bottom: 8px;
+        }
+        .logo {
+            height: 65px;
+            margin-right: 8px;
+        }
+        .report-title {
+            font-weight: bold;
+            font-size: 11pt;
+            color: #0d6efd;
+        }
+        .sub-title {
+            font-size: 9pt;
+            color: #555;
+        }
+        .employee-info {
+            font-size: 8.5pt;
+            line-height: 1.3;
+        }
+        .attendance-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .attendance-table th, .attendance-table td {
+            padding: 0.3rem 0.5rem;
+            font-size: 8.5pt;
+            border: 1px solid #dee2e6;
+            text-align: center;
+        }
+        .attendance-table th {
+            background-color: #f1f1f1;
+            font-weight: bold;
+        }
+        .attendance-table td {
+            vertical-align: middle;
+        }
+        .status-badge {
+            font-size: 0.7rem;
+            padding: 0.15em 0.4em;
+            border-radius: 3px;
+            display: inline-block;
+        }
+        .weekend-row {
+            background-color: #f8f9fa;
+        }
+        .performance-summary h6 {
+            font-size: 9pt;
+            font-weight: bold;
+            margin-bottom: 6px;
+            text-align: center;
+            color: #0d6efd;
+        }
+        .performance-summary table {
+            width: 100%;
+        }
+        .footer {
+            font-size: 8pt;
+            color: #888;
+            text-align: center;
+            margin-top: 6px;
+        }
+        .fixed-back-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        .fixed-print-button {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+        }
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <!-- Header -->
+        <div class="row header align-items-center mx-auto mt-4">
+            <div class="col-10 mx-auto d-flex">
+                <div class="col-2">
+                    <div class="employee-info">
+                        <strong>{{ employee.admin.first_name|title }} {{ employee.admin.last_name|title }}</strong><br>
+                        ID : {% if employee.employee_id %}{{ employee.employee_id }}{% else %}{{ employee.manager_id }}{% endif %}<br>
+                        {{ employee.department.name|title }}
+                    </div>
+                </div>
+                <div class="col-8 text-center">
+                    <div class="report-title">Attendance Report</div>
+                    <div class="sub-title">{{ month_name }} {{ year }}</div>
+                    <div class="generated-info mt-1">
+                        Generated on {% now "M j, Y H:i" %}
+                    </div>
+                </div>
+                <div class="col-2">
+                    <img src="{% static 'admin/img/koli_logo.svg' %}" class="logo" alt="Company Logo">
+                </div>
+            </div>
+        </div>
+        
+        <!-- Attendance Tables -->
+        <div class="row">
+            <div class="col-10 mx-auto">
+                <table class="attendance-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 35%;">Date</th>
+                            <th style="width: 30%;">Status</th>
+                            <th style="width: 35%;">Total Working Hours</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in daily_records %}
+                        <tr class="{% if record.is_weekend %}weekend-row{% endif %}">
+                            <td>{{ record.date|date:"d-m-Y (D)" }}</td>
+                            <td>
+                                {% if record.is_weekend %}
+                                    <span class="badge bg-secondary status-badge">WO</span>
+                                {% elif record.status == 'present' %}
+                                    <span class="badge bg-success status-badge">P</span>
+                                {% elif record.status == 'late' %}
+                                    <span class="badge bg-warning status-badge">Late</span>
+                                {% elif record.status == 'half_day' %}
+                                    <span class="badge bg-primary status-badge">HF</span>
+                                {% elif record.status == 'leave' %}
+                                    <span class="badge bg-info status-badge">LV</span>
+                                {% elif record.status == 'absent' %}
+                                    <span class="badge bg-danger status-badge">A</span>
+                                {% else %}
+                                    <span class="badge bg-danger status-badge">A</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if record.total_worked_hours is not none %}
+                                    {{ record.total_worked_hours }} hrs
+                                {% else %}
+                                    0.00 hrs
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Performance Summary -->
+        <div class="performance-summary mt-1">
+            <div class="col-10 mx-auto">
+                <h6>Performance Summary</h6>
+                <div class="row">
+                    <div class="col-6">
+                        <table class="table table-sm table-borderless mb-1">
+                            <tr><td>Total Days:</td><td class="fw-bold">{{ daily_records|length }}</td></tr>
+                            <tr><td>Working Days:</td><td class="fw-bold">{{ total_working_days }}</td></tr>
+                            <tr><td>Present Days:</td><td class="fw-bold">{{ present_days }}</td></tr>
+                        </table>
+                    </div>
+                    <div class="col-6">
+                        <table class="table table-sm table-borderless mb-1">
+                            <!-- <tr><td>Total Working Hours:</td><td class="fw-bold">{{ total_worked_hours }} hrs</td></tr> -->
+                            <tr><td>Late Arrivals:</td><td class="fw-bold">{{ late_days }}</td></tr>
+                            <tr><td>Half Days:</td><td class="fw-bold">{{ half_days }}</td></tr>
+                            <tr><td>Absent Days:</td><td class="fw-bold">{{ absent_days }}</td></tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer mt-1">
+            <div class="legend d-flex justify-content-center">
+                <div class="d-flex flex-wrap justify-content-center gap-2">
+                    <span>A</span> = Absent  
+                    <span>P</span> = Present  
+                    <span>Late</span> = Late Arrival  
+                    <span>HF</span> = Half-Day  
+                    <span>LV</span> = Full-Day Leave  
+                    <span>WO</span> = Weekly Off
+                </div>
+            </div>
+            
+        </div>
+
+    </div>
+
+    <!-- Fixed Buttons -->
+    <div class="fixed-print-button no-print">
+        <button class="btn btn-sm btn-outline-secondary" onclick="window.print()">Print Report</button>
+    </div>
+    <div class="fixed-back-button no-print">
+        <button class="btn btn-sm btn-outline-primary" onclick="history.back()">Back</button>
+    </div>
+
+</body>
+</html>

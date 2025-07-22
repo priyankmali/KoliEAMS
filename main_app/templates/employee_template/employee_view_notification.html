@@ -1,0 +1,528 @@
+{% extends 'main_app/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block page_title %}{{ page_title }}{% endblock page_title %}
+
+{% block custom_css %}
+    <style>
+        .card-dark {
+            border-color: #343a40;
+        }
+        .card-dark .card-header {
+            border-bottom-color: #454d55;
+        }
+        .badge {
+            font-size: 85%;
+            font-weight: 500;
+            padding: 0.35em 0.5em;
+        }
+        .table th {
+            border-top: none;
+            background-color: #f8f9fa;
+        }
+        .manager-avatar {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 1px solid #dee2e6;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        .sender-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .modal-content {
+            border: none;
+            border-radius: 0.5rem;
+        }
+        .modal-header {
+            border-radius: 0.5rem 0.5rem 0 0 !important;
+        }
+        .select2-container--bootstrap4 .select2-selection--single {
+            height: calc(1.5em + 0.75rem + 2px) !important;
+        }
+        .pagination {
+            font-size: 0.9rem;
+        }
+        .page-item.active .page-link {
+            background-color: #4e73df;
+            border-color: #4e73df;
+            width: 36px;
+        }
+        .page-link {
+            color: #4e73df;
+        }
+        .card-footer {
+            background-color: rgba(0, 0, 0, 0.03);
+        }
+        .notification-text {
+            font-weight: normal !important;
+        }
+        .form-inline label {
+            justify-content: left;
+            margin-bottom: 0;
+        }
+        .badge-pending {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        .badge-in-progress {
+            background-color: #17a2b8;
+            color: white;
+        }
+        .badge-resolved {
+            background-color: #28a745;
+            color: white;
+        }
+        .badge-rejected {
+            background-color: #dc3545;
+            color: white;
+        }
+        .unread-dot {
+            font-size: 8px;
+            margin-left: 5px;
+            margin-top: 15px;
+            color: #dc3545;
+        }
+        /* Responsive table styles */
+        @media (max-width: 767.98px) {
+            .table-responsive {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            .form-inline .form-group {
+                display: block;
+                margin-bottom: 0.5rem;
+                width: 100%;
+            }
+        }
+    </style>
+{% endblock custom_css %}
+
+{% block content %}
+<section class="content">
+    <div class="container-fluid">
+
+        <!-- Admin Notifications Card -->
+        <div class="card card-dark mb-4 shadow-lg">
+            <div class="card-header bg-primary">
+                <h3 class="card-title">
+                    <i class="fas fa-bell mr-2"></i>
+                    <strong>Notifications from Admin</strong>
+                </h3>
+                <div class="card-tools">
+                    <span class="badge badge-light">{{ total_notifications }} Total</span>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="thead-light">
+                            <tr>
+                                <th style="width: 10%" data-title="Date">Date</th>
+                                <th style="width: 10%" data-title="Time">Time</th>
+                                <th style="width: 15%" data-title="Sender">Sender</th>
+                                <th style="width: 45%" data-title="Message">Message</th>
+                                <th style="width: 20%" data-title="Actions">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for notification in notification_from_admin_obj %}
+                                <tr class="notification-text" data-notification-id="{{ notification.id }}">
+                                    <td data-title="Date">{{ notification.created_at|date:"d-m-Y" }}</td>
+                                    <td data-title="Time">{{ notification.created_at|time:"H:i" }}</td>
+                                    <td data-title="Sender">
+                                        {% if notification.created_by %}
+                                            <div class="sender-container">
+                                                {% if notification.created_by.profile_pic and notification.created_by.profile_pic %}
+                                                    <img src="{{ notification.created_by.profile_pic }}" alt="Profile" class="manager-avatar" onerror="this.src='{% static 'dist/img/avatar.png' %}'">
+                                                {% else %}
+                                                    {% if notification.created_by.gender|default:'other' == 'F' %}
+                                                        <img src="{% static 'dist/img/avatar_female.png' %}" alt="Default Female Profile" class="manager-avatar">
+                                                    {% elif notification.created_by.gender|default:'other' == 'M' %}
+                                                        <img src="{% static 'dist/img/avatar_male.png' %}" alt="Default Male Profile" class="manager-avatar">
+                                                    {% else %}
+                                                        <img src="{% static 'dist/img/avatar.png' %}" alt="Default Profile" class="manager-avatar">
+                                                    {% endif %}
+                                                {% endif %}
+                                                <span>{{ notification.created_by.get_full_name|default:"Admin"|title }}</span>
+                                            </div>
+                                        {% else %}
+                                            <span>System Admin</span>
+                                        {% endif %}
+                                    </td>
+                                    <td data-title="Message">
+                                        <div class="message-preview">
+                                            {{ notification.message|truncatechars:100 }}
+                                            {% if notification.message|length > 100 %}
+                                                <a href="#" data-toggle="modal" data-target="#notificationModal-{{ notification.id }}" onclick="markNotificationRead({{ notification.id }}, 'notification-from-admin')">Read more</a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td data-title="Actions">
+                                        <div class="btn-group btn-group-sm">
+                                            <button type="button" class="btn btn-info" data-toggle="modal" 
+                                                    data-target="#notificationModal-{{ notification.id }}" title="View Details" onclick="markNotificationRead({{ notification.id }}, 'notification-from-admin')">
+                                                <i class="fas fa-eye"></i> View Details
+                                            </button>
+                                            {% if notification.id in general_notification %}
+                                                <i class="fas fa-circle unread-dot" title="Unread"></i>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- Admin Notification Modal -->
+                                <div class="modal fade leave-modal" id="notificationModal-{{ notification.id }}" tabindex="-1" role="dialog" aria-hidden="true">
+                                    <div class="modal-dialog" role="document-currently active document.documentElement.classList.add('modal-open');document.body.style.paddingRight = '17px';document" aria-label="Close">
+                                        <div class="modal-content">
+                                            <div class="modal-header bg-dark text-white">
+                                                <h5 class="modal-title">Notification from Admin</h5>
+                                                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                                                    <span aria-hidden="true">×</span>
+                                                </button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="row mb-3">
+                                                    <div class="col-md-8">
+                                                        <span class="badge badge-primary">
+                                                            {{ notification.created_at|date:"M d, Y H:i" }}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label>Sent by:</label>
+                                                    <div class="d-flex align-items-center">
+                                                        {% if notification.created_by.profile_pic and notification.created_by.profile_pic %}
+                                                            <img src="{{ notification.created_by.profile_pic }}" alt="Profile" class="manager-avatar" onerror="this.src='{% static 'dist/img/avatar.png' %}'">
+                                                        {% else %}
+                                                            {% if notification.created_by.gender|default:'other' == 'F' %}
+                                                                <img src="{% static 'dist/img/avatar_female.png' %}" alt="Default Female Profile" class="manager-avatar">
+                                                            {% elif notification.created_by.gender|default:'other' == 'M' %}
+                                                                <img src="{% static 'dist/img/avatar_male.png' %}" alt="Default Male Profile" class="manager-avatar">
+                                                            {% else %}
+                                                                <img src="{% static 'dist/img/avatar.png' %}" alt="Default Profile" class="manager-avatar">
+                                                            {% endif %}
+                                                        {% endif %}
+                                                        <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ notification.created_by.get_full_name|default:"System Admin" }} (Admin)</span>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label>Full Message:</label>
+                                                    <div class="p-3 bg-light rounded">
+                                                        {{ notification.message }}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                                                    <i class="fas fa-times mr-1"></i> Close
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-4">
+                                        <i class="fas fa-bell-slash fa-2x text-muted mb-3"></i>
+                                        <h5 class="text-muted">No notifications from admin</h5>
+                                        <p class="small">You have no notifications at this time</p>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Admin Pagination -->
+            {% if notification_from_admin_obj.paginator.num_pages > 1 %}
+                <div class="card-footer">
+                    <nav aria-label="Admin notifications pagination">
+                        <ul class="pagination justify-content-center mb-0">
+                            {% if notification_from_admin_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?notification_page=1" aria-label="First">
+                                        <span aria-hidden="true">««</span>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?notification_page={{ notification_from_admin_obj.previous_page_number }}" aria-label="Previous">
+                                        <span aria-hidden="true">«</span>
+                                    </a>
+                                </li>
+                            {% endif %}
+                            {% for num in notification_from_admin_obj.paginator.page_range %}
+                                {% if notification_from_admin_obj.number == num %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ num }}</span>
+                                    </li>
+                                {% elif num > notification_from_admin_obj.number|add:'-3' and num < notification_from_admin_obj.number|add:'3' %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?notification_page={{ num }}">{{ num }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            {% if notification_from_admin_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?notification_page={{ notification_from_admin_obj.next_page_number }}" aria-label="Next">
+                                        <span aria-hidden="true">»</span>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?notification_page={{ notification_from_admin_obj.paginator.num_pages }}" aria-label="Last">
+                                        <span aria-hidden="true">»»</span>
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    <div class="text-center text-muted small mt-2">
+                        Showing page {{ notification_from_admin_obj.number }} of {{ notification_from_admin_obj.paginator.num_pages }}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Manager Notifications Card -->
+        <div class="card card-dark mb-4 shadow-lg">
+            <div class="card-header bg-primary">
+                <h3 class="card-title">
+                    <i class="fas fa-bell mr-2"></i>
+                    <strong>Notifications from Managers</strong>
+                </h3>
+                <div class="card-tools">
+                    <span class="badge badge-light">{{ total_manager_notifications }} Total</span>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="thead-light">
+                            <tr>
+                                <th style="width: 10%" data-title="Date">Date</th>
+                                <th style="width: 10%" data-title="Time">Time</th>
+                                <th style="width: 15%" data-title="Sender">Sender</th>
+                                <th style="width: 45%" data-title="Message">Message</th>
+                                <th style="width: 20%" data-title="Actions">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for notification in notification_from_manager_obj %}
+                                <tr class="notification-text" data-notification-id="{{ notification.id }}">
+                                    <td data-title="Date">{{ notification.created_at|date:"d-m-y" }}</td>
+                                    <td data-title="Time">{{ notification.created_at|time:"H:i" }}</td>
+                                    <td data-title="Sender">
+                                        {% if notification.created_by %}
+                                            <div class="sender-container">
+                                                {% if notification.created_by.profile_pic and notification.created_by.profile_pic %}
+                                                    <img src="{{ notification.created_by.profile_pic }}" alt="Profile" class="manager-avatar" onerror="this.src='{% static 'dist/img/avatar.png' %}'">
+                                                {% else %}
+                                                    {% if notification.created_by.gender|default:'other' == 'F' %}
+                                                        <img src="{% static 'dist/img/avatar_female.png' %}" alt="Default Female Profile" class="manager-avatar">
+                                                    {% elif notification.created_by.gender|default:'other' == 'M' %}
+                                                        <img src="{% static 'dist/img/avatar_male.png' %}" alt="Default Male Profile" class="manager-avatar">
+                                                    {% else %}
+                                                        <img src="{% static 'dist/img/avatar.png' %}" alt="Default Profile" class="manager-avatar">
+                                                    {% endif %}
+                                                {% endif %}
+                                                <span>{{ notification.created_by.get_full_name|default:"Manager"|title }}</span>
+                                            </div>
+                                        {% else %}
+                                            <span>Unknown Manager</span>
+                                        {% endif %}
+                                    </td>
+                                    <td data-title="Message">
+                                        <div class="message-preview">
+                                            {{ notification.message|truncatechars:100 }}
+                                            {% if notification.message|length > 100 %}
+                                                <a href="#" data-toggle="modal" data-target="#managerNotificationModal-{{ notification.id }}" onclick="markNotificationRead({{ notification.id }}, 'notification-from-manager')">Read more</a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td data-title="Actions">
+                                        <div class="btn-group btn-group-sm">
+                                            <button type="button" class="btn btn-info" data-toggle="modal" 
+                                                    data-target="#managerNotificationModal-{{ notification.id }}" title="View Details" onclick="markNotificationRead({{ notification.id }}, 'notification-from-manager')">
+                                                <i class="fas fa-eye"></i> View Details
+                                            </button>
+                                            {% if notification.id in general_notification %}
+                                                <i class="fas fa-circle unread-dot" title="Unread"></i>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- Manager Notification Modal -->
+                                <div class="modal fade leave-modal" id="managerNotificationModal-{{ notification.id }}" tabindex="-1" role="dialog" aria-hidden="true">
+                                    <div class="modal-dialog" role="document">
+                                        <div class="modal-content">
+                                            <div class="modal-header bg-dark text-white">
+                                                <h5 class="modal-title">Notification from Manager</h5>
+                                                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                                                    <span aria-hidden="true">×</span>
+                                                </button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="row mb-3">
+                                                    <div class="col-md-8">
+                                                        <span class="badge badge-primary">
+                                                            {{ notification.created_at|date:"M d, Y H:i" }}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label>Sent by:</label>
+                                                    <div class="d-flex align-items-center">
+                                                        {% if notification.created_by.profile_pic and notification.created_by.profile_pic %}
+                                                            <img src="{{ notification.created_by.profile_pic }}" alt="Profile" class="manager-avatar" onerror="this.src='{% static 'dist/img/avatar.png' %}'">
+                                                        {% else %}
+                                                            {% if notification.created_by.gender|default:'other' == 'F' %}
+                                                                <img src="{% static 'dist/img/avatar_female.png' %}" alt="Default Female Profile" class="manager-avatar">
+                                                            {% elif notification.created_by.gender|default:'other' == 'M' %}
+                                                                <img src="{% static 'dist/img/avatar_male.png' %}" alt="Default Male Profile" class="manager-avatar">
+                                                            {% else %}
+                                                                <img src="{% static 'dist/img/avatar.png' %}" alt="Default Profile" class="manager-avatar">
+                                                            {% endif %}
+                                                        {% endif %}
+                                                        <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ notification.created_by.get_full_name|default:"Manager" }} (Manager)</span>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label>Full Message:</label>
+                                                    <div class="p-3 bg-light rounded">
+                                                        {{ notification.message }}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                                                    <i class="fas fa-times mr-1"></i> Close
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-4">
+                                        <i class="fas fa-bell-slash fa-2x text-muted mb-3"></i>
+                                        <h5 class="text-muted">No notifications from managers</h5>
+                                        <p class="small">You have no notifications at this time</p>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Manager Pagination -->
+            {% if notification_from_manager_obj.paginator.num_pages > 1 %}
+                <div class="card-footer">
+                    <nav aria-label="Manager notifications pagination">
+                        <ul class="pagination justify-content-center mb-0">
+                            {% if notification_from_manager_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?manager_page=1" aria-label="First">
+                                        <span aria-hidden="true">««</span>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?manager_page={{ notification_from_manager_obj.previous_page_number }}" aria-label="Previous">
+                                        <span aria-hidden="true">«</span>
+                                    </a>
+                                </li>
+                            {% endif %}
+                            {% for num in notification_from_manager_obj.paginator.page_range %}
+                                {% if notification_from_manager_obj.number == num %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ num }}</span>
+                                    </li>
+                                {% elif num > notification_from_manager_obj.number|add:'-3' and num < notification_from_manager_obj.number|add:'3' %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?manager_page={{ num }}">{{ num }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            {% if notification_from_manager_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?manager_page={{ notification_from_manager_obj.next_page_number }}" aria-label="Next">
+                                        <span aria-hidden="true">»</span>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?manager_page={{ notification_from_manager_obj.paginator.num_pages }}" aria-label="Last">
+                                        <span aria-hidden="true">»»</span>
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    <div class="text-center text-muted small mt-2">
+                        Showing page {{ notification_from_manager_obj.number }} of {{ notification_from_manager_obj.paginator.num_pages }}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        $('.select2').select2({
+            theme: 'bootstrap4',
+            width: '100%'
+        });
+    });
+</script>
+{% endblock %}
+
+{% block custom_js %}
+<script>
+    function markNotificationRead(notificationId, notificationType) {
+        const csrftoken = document.cookie
+            .split('; ')
+            .find(row => row.startsWith('csrftoken='))
+            ?.split('=')[1];
+
+        fetch('{% url "mark_notification_read" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': csrftoken,
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: new URLSearchParams({
+                'notification_id': notificationId,
+                'notification_type': notificationType
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                const unreadDot = document.querySelector(`tr[data-notification-id="${notificationId}"] .unread-dot`);
+                if (unreadDot) {
+                    unreadDot.style.display = 'none';
+                }
+            } else {
+                console.error('Failed to mark notification as read:', data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        $('.leave-modal').on('hidden.bs.modal', function () {
+            location.reload();
+        });
+    });
+</script>
+{% endblock custom_js %}

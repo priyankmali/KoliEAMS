@@ -1,0 +1,406 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>KOLIInfotech | Secure Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Favicon -->
+    <link rel="icon" href="{% static 'dist/img/koli-logo.svg' %}" type="image/svg+xml">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="{% static 'plugins/fontawesome-free/css/all.min.css' %}">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Theme style -->
+    <link rel="stylesheet" href="{% static 'dist/css/adminlte.min.css' %}">
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #4895ef;
+            --koli-color: #4361ee;
+            --infotech-color: #2a9d8f;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+        
+        .login-container {
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            animation: fadeInUp 0.6s ease-out both;
+        }
+        
+        .brand-logo {
+            height: auto;
+            width: 180px;
+            margin: 1.5rem auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.3s ease;
+        }
+        
+        .brand-logo:hover {
+            transform: scale(1.05) rotate(-2deg);
+        }
+        
+        .brand-logo img {
+            width: 100%;
+            height: auto;
+            max-width: 300px;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            background-color: white;
+            width: 100%;
+            transition: all 0.3s ease;
+            transform: translateY(0);
+        }
+        
+        .card:hover {
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            transform: translateY(-5px);
+        }
+        
+        .login-card-body {
+            padding: 2.5rem;
+        }
+        
+        .login-box-msg {
+            color: #6c757d;
+            margin-bottom: 2rem;
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 500;
+            animation: fadeIn 0.8s ease-in both;
+            animation-delay: 0.3s;
+        }
+        
+        .input-group {
+            margin-bottom: 1.5rem;
+            position: relative;
+            animation: fadeIn 0.8s ease-in both;
+        }
+        
+        .input-group:nth-child(1) {
+            animation-delay: 0.4s;
+        }
+        
+        .input-group:nth-child(2) {
+            animation-delay: 0.5s;
+        }
+        
+        .form-control {
+            height: 50px;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+            padding-left: 45px;
+            padding-right: 45px;
+            transition: all 0.3s;
+            width: 100%;
+        }
+        
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(67, 97, 238, 0.25);
+            transform: translateX(5px);
+        }
+        
+        .input-group-text {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 50px;
+            width: 45px;
+            background: transparent;
+            border: none;
+            z-index: 4;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+            transition: color 0.3s;
+        }
+        
+        .form-control:focus + .input-group-text {
+            color: var(--primary-color);
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            height: 50px;
+            border-radius: 8px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 0.8s ease-in both;
+            animation-delay: 0.6s;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+        }
+        
+        .btn-primary:active {
+            transform: translateY(0) scale(0.98);
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #6c757d;
+            z-index: 5;
+            transition: color 0.3s;
+        }
+        
+        .password-toggle:hover {
+            color: var(--primary-color);
+        }
+        
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+        
+        /* Alert animations */
+        .alert {
+            animation: slideInDown 0.5s ease-out both;
+        }
+        
+        @keyframes slideInDown {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 576px) {
+            .login-card-body {
+                padding: 1.5rem;
+            }
+            
+            .brand-logo {
+                width: 120px;
+                margin-bottom: 1rem;
+            }
+            
+            body {
+                padding: 10px;
+            }
+        }
+        
+        @media (max-width: 400px) {
+            .login-card-body {
+                padding: 1.2rem;
+            }
+            
+            .form-control {
+                height: 45px;
+                padding-left: 40px;
+                padding-right: 40px;
+            }
+            
+            .input-group-text {
+                width: 40px;
+                height: 45px;
+            }
+            
+            .btn-primary {
+                height: 45px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+
+<body class="hold-transition login-page">
+    <div class="login-container">
+        <div class="card">
+            <div class="card-body login-card-body">
+                <div class="brand-logo">
+                    <img src="{% static 'dist/img/koli-logo.svg' %}" alt="KOLIInfotech Logo">
+                </div>
+                
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert 
+                            {% if message.tags == 'success' %}alert-success
+                            {% elif message.tags == 'warning' %}alert-warning
+                            {% elif message.tags == 'error' %}alert-danger
+                            {% else %}alert-info
+                            {% endif %}
+                            alert-dismissible fade show" role="alert">
+                            <strong>{{ message }}</strong>
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <form action="{% url 'user_login' %}" method="post">
+                    {% csrf_token %}
+                    <div class="input-group mb-3">
+                        <input required type="email" name="email" class="form-control" placeholder="Email address">
+                        <div class="input-group-text">
+                            <span class="fas fa-envelope"></span>
+                        </div>
+                    </div>
+                    
+                    <div class="input-group mb-3">
+                        <input required type="password" id="password" name="password" class="form-control" placeholder="Password">
+                        <div class="input-group-text">
+                            <span class="fas fa-lock"></span>
+                        </div>
+                        <div class="password-toggle" id="togglePassword">
+                            <i class="fas fa-eye" id="toggleIcon"></i>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary btn-block">
+                                <i class="fas fa-sign-in-alt mr-2"></i> Sign In
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- jQuery -->
+    <script src="{% static 'plugins/jquery/jquery.min.js' %}"></script>
+    <!-- Bootstrap 4 -->
+    <script src="{% static 'plugins/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+    <!-- AdminLTE App -->
+    <script src="{% static 'dist/js/adminlte.min.js' %}"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const togglePassword = document.getElementById("togglePassword");
+            const passwordInput = document.getElementById("password");
+            const toggleIcon = document.getElementById("toggleIcon");
+
+            togglePassword.addEventListener("click", function() {
+                const isHidden = passwordInput.type === "password";
+                passwordInput.type = isHidden ? "text" : "password";
+                toggleIcon.classList.toggle("fa-eye-slash");
+                toggleIcon.classList.toggle("fa-eye");
+                
+                // Add a small animation when toggling
+                if (isHidden) {
+                    toggleIcon.animate([
+                        { transform: 'scale(1)' },
+                        { transform: 'scale(1.2)' },
+                        { transform: 'scale(1)' }
+                    ], {
+                        duration: 300
+                    });
+                }
+            });
+            
+            // Add focus animation to form inputs
+            const inputs = document.querySelectorAll('.form-control');
+            inputs.forEach(input => {
+                input.addEventListener('focus', function() {
+                    this.parentElement.querySelector('.input-group-text').animate([
+                        { transform: 'scale(1)' },
+                        { transform: 'scale(1.1)' },
+                        { transform: 'scale(1)' }
+                    ], {
+                        duration: 300
+                    });
+                });
+            });
+            
+            // Button hover animation
+            const submitButton = document.querySelector('.btn-primary');
+            submitButton.addEventListener('mouseenter', function() {
+                this.animate([
+                    { transform: 'scale(1)' },
+                    { transform: 'scale(1.02)' }
+                ], {
+                    duration: 200,
+                    fill: 'forwards'
+                });
+            });
+            
+            submitButton.addEventListener('mouseleave', function() {
+                this.animate([
+                    { transform: 'scale(1.02)' },
+                    { transform: 'scale(1)' }
+                ], {
+                    duration: 200,
+                    fill: 'forwards'
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>

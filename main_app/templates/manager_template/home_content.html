@@ -1,0 +1,645 @@
+{% extends 'main_app/base.html' %}
+{% load static %}
+
+{% block custom_css %}
+<style>
+  /* Gradient Backgrounds */
+  .bg-gradient-primary {
+      background: linear-gradient(135deg, #667eea 0%, rgb(64, 11, 117) 100%) !important;
+  }
+  .bg-gradient-warning {
+      color: white;
+      background: linear-gradient(135deg, rgb(76, 72, 57) 0%, rgb(170, 184, 24) 100%) !important;
+  }
+  .bg-gradient-danger {
+      background: linear-gradient(135deg, rgb(207, 48, 48) 0%, rgb(138, 25, 25) 100%) !important;
+  }
+  .bg-gradient-secondary {
+      background: linear-gradient(135deg, #2d1e23 0%, #1a9576 100%) !important;
+  }
+  .bg-gradient-info {
+      background: linear-gradient(135deg, #17a2b8 0%, #138496 100%) !important;
+  }
+  
+  /* Card Styles */
+  .card {
+      transition: all 0.3s ease;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+  }
+  
+  .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+  }
+  
+  /* Icon Circle */
+  .icon-circle {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+  }
+  
+  .bg-white-20 {
+      background-color: rgba(255,255,255,0.2);
+  }
+
+  /* Small Box Enhancements */
+  .small-box {
+      border-radius: 10px;
+      overflow: hidden;
+      transition: all 0.3s;
+      height: 100%;
+  }
+  
+  .small-box:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+  }
+  
+  .small-box .icon {
+      font-size: 70px;
+      transition: all 0.3s;
+  }
+  
+  .small-box:hover .icon {
+      font-size: 75px;
+  }
+  
+  /* Table Styling */
+  .table-responsive {
+      border-radius: 10px;
+      overflow: hidden;
+  }
+  
+  .table {
+      margin-bottom: 0;
+  }
+  
+  .table thead th {
+      border-top: none;
+      font-weight: 600;
+  }
+  
+  /* Card Header */
+  .card-header {
+      border-radius: 10px 10px 0 0 !important;
+      font-weight: 600;
+  }
+  
+  /* Responsive Adjustments */
+  @media (max-width: 992px) {
+      .small-box .icon {
+          font-size: 60px;
+      }
+      
+      .small-box:hover .icon {
+          font-size: 65px;
+      }
+      
+      .small-box .inner h3 {
+          font-size: 1.8rem;
+      }
+      
+      .small-box .inner p {
+          font-size: 0.9rem;
+      }
+  }
+  
+  @media (max-width: 768px) {
+      .small-box .icon {
+          font-size: 50px;
+      }
+      
+      .small-box:hover .icon {
+          font-size: 55px;
+      }
+      
+      .small-box .inner h3 {
+          font-size: 1.6rem;
+      }
+  }
+  
+  @media (max-width: 576px) {
+      .col-12.mb-4 {
+          padding-left: 8px;
+          padding-right: 8px;
+      }
+      
+      .small-box {
+          padding: 10px;
+      }
+      
+      .small-box .icon {
+          font-size: 40px;
+      }
+      
+      .small-box:hover .icon {
+          font-size: 45px;
+      }
+      
+      .small-box .inner h3 {
+          font-size: 1.4rem;
+      }
+      
+      .small-box .inner p {
+          font-size: 0.8rem;
+      }
+      
+      .small-box .small-box-footer {
+          font-size: 0.8rem;
+      }
+      
+      .table th, .table td {
+          padding: 0.5rem;
+          font-size: 0.85rem;
+      }
+      
+      .card-header h5 {
+          font-size: 1.1rem;
+      }
+  }
+  
+  /* Extra small devices (phones, 360px and down) */
+  @media (max-width: 360px) {
+      .small-box .inner h3 {
+          font-size: 1.2rem;
+      }
+      
+      .table th, .table td {
+          padding: 0.3rem;
+          font-size: 0.75rem;
+      }
+  }
+  
+  .btn-loading {
+      position: relative;
+      pointer-events: none;
+  }
+  
+  .btn-loading::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 16px;
+      height: 16px;
+      margin: -8px 0 0 -8px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+      to { transform: rotate(360deg); }
+  }
+  
+  /* Ensure full width on mobile */
+  .container-fluid {
+      padding-left: 15px;
+      padding-right: 15px;
+  }
+  
+  /* Adjust row margins on small screens */
+  @media (max-width: 768px) {
+      .row {
+          margin-left: -8px;
+          margin-right: -8px;
+      }
+  }
+
+   /* Hide all elements except timesheet_clock.html content on mobile devices */
+    @media only screen and (max-width: 768px) {
+        /* Hide all sections and elements by default */
+        .employee-hide,
+        .row,
+        .col,
+        .card,
+        .small-box,
+        .card-header,
+        .card-body,
+        .table-responsive,
+        .pagination-container,
+        .date-filter-group,
+        #notification_base {
+            display: none !important;
+        }
+
+        /* Show only the timesheet_clock.html content */
+        #timesheet_clock{
+            display: block !important;
+        }
+        .priyankAlertMsg {
+            display: block !important;
+        }
+
+        .messageAlerts {
+            display: block !important;
+        }
+
+        .koliInfotech {
+            position: absolute;
+            top: 210px;
+            right: 7px;
+            display: flex;
+            flex-direction: column !important;
+            padding: 3px;
+        }
+
+        .priyank {
+            flex-direction: column !important;
+            gap: 30px !important;
+        }
+        .priyankResponsive {
+            font-size: xxx-large !important;
+        }
+        .priyankClockin{
+            position: relative;
+            left: -97px;
+            top: 115px;
+        }
+
+        .priyankClockInbtn {
+            font-size: xxx-large;
+            margin: 30px;
+        }
+
+        .employee-panel-buttons span.d-none.d-sm-inline {
+            display: inline !important;
+            padding: 30px;
+        }
+
+        .responsiveText{
+            font-size: 20px !important;
+            text-align: center !important;
+            padding: 4px !important;
+        }
+
+        .priyankTimeout {
+            text-align: center !important;
+            padding-top: 20px !important;
+            padding: 40px !important;
+            margin-bottom: 40px !important;
+        }
+
+        .priyankBreakTimeout {
+            margin-bottom: 10px !important;
+            text-align: center !important;
+            padding-left: 65px !important;
+            
+        }
+    }
+
+  /* Loading overlay for table */
+  .table-loading {
+      position: relative;
+      pointer-events: none;
+      opacity: 0.7;
+  }
+
+  .table-loading::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 40px;
+      height: 40px;
+      margin: -20px 0 0 -20px;
+      border: 4px solid rgba(0,0,0,0.1);
+      border-radius: 50%;
+      border-top-color: #17a2b8;
+      animation: spin 1s linear infinite;
+      z-index: 1000;
+  }
+</style>
+{% endblock custom_css %}
+
+{% block notification %}
+    {% include "main_app/notification_base.html" %}
+{% endblock %}
+
+{% block content %}
+    <section class="content">
+        <div class="container-fluid">
+            <!-- Stat boxes -->
+            <div class="row">
+                <div class="col-lg-3 col-md-6 col-12 mb-4">
+                    <div class="small-box bg-gradient-primary">
+                        <div class="inner">
+                            <h3>{{total_employees}}</h3>
+                            <p>Total Employees</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        
+                        <a href="{% url 'manage_employee_by_manager' %}" class="small-box-footer">
+                            View all <i class="fas fa-arrow-right ml-1"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-md-6 col-12 mb-4">
+                    <div class="small-box bg-gradient-warning">
+                        <div class="inner">
+                            <h3>{{ leave_request_from_employee }}</h3>
+                            <p>Total Leave Applied</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                        <a href="{% url 'manager_view_notification' %}" class="small-box-footer">view all <i class="fas fa-arrow-right ml-1"></i></a>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-md-6 col-12 mb-4">
+                    <div class="small-box bg-gradient-danger">
+                        <div class="inner">
+                            <h3>{{ total_department }}</h3>
+                            <p>Total Departments</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-building"></i>
+                        </div>
+                        <a href="#" class="small-box-footer"> </a>
+                    </div>
+                </div>
+                
+                <div class="col-lg-3 col-md-6 col-12 mb-4">
+                    <div class="small-box bg-gradient-secondary">
+                        <div class="inner">
+                            <h3>{{ total_on_break }}</h3>
+                            <p>On Break</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-mug-hot"></i>
+                        </div>
+                        <a href="#" class="small-box-footer"> </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header bg-gradient-info text-white">
+                            <h5 class="mb-0">Today's Employee Breaks</h5>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive" id="break-entries-container">
+                                <table class="table table-hover mb-0">
+                                    <thead class="thead-light">
+                                        <tr>
+                                            <th>SN</th>
+                                            <th>Employee</th>
+                                            <th class="d-none d-md-table-cell">Department</th>
+                                            <th class="d-none d-sm-table-cell">Start</th>
+                                            <th class="d-none d-sm-table-cell">End</th>
+                                            <th>Duration</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="break-entries-body">
+                                        {% for entry in break_entries %}
+                                        <tr>
+                                            <td>{{ forloop.counter0|add:page_obj.start_index }}</td>
+                                            <td>
+                                                <div class="d-flex flex-column">
+                                                    <span>{{ entry.employee_name }}</span>
+                                                    <small class="d-md-none text-muted">{{ entry.department|capfirst }}</small>
+                                                    <small class="d-sm-none text-muted">
+                                                        {{ entry.break_start }} - {{ entry.break_end }}
+                                                    </small>
+                                                </div>
+                                            </td>
+                                            <td class="d-none d-md-table-cell">{{ entry.department }}</td>
+                                            <td class="d-none d-sm-table-cell">{{ entry.break_start }}</td>
+                                            <td class="d-none d-sm-table-cell">{{ entry.break_end }}</td>
+                                            <td>{{ entry.break_duration }}</td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="6" class="text-center py-4 text-muted">
+                                                <i class="fas fa-coffee fa-2x mb-2"></i><br>
+                                                No break entries for today
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                                {% if page_obj.has_other_pages %}
+                                <nav aria-label="Break entries pagination" id="break-entries-pagination">
+                                    <ul class="pagination justify-content-center mt-3 flex-wrap">
+                                        {% if page_obj.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page=1" data-page="1" data-section="break" aria-label="First">
+                                                <span aria-hidden="true">««</span>
+                                            </a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}" data-page="{{ page_obj.previous_page_number }}" data-section="break" aria-label="Previous">
+                                                <span aria-hidden="true">«</span>
+                                            </a>
+                                        </li>
+                                        {% endif %}
+                                        {% for num in page_obj.paginator.page_range %}
+                                            {% if page_obj.number == num %}
+                                                <li class="page-item active"><a class="page-link" href="#">{{ num }}</a></li>
+                                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                                <li class="page-item"><a class="page-link" href="?page={{ num }}" data-page="{{ num }}" data-section="break">{{ num }}</a></li>
+                                            {% endif %}
+                                        {% endfor %}
+                                        {% if page_obj.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.next_page_number }}" data-page="{{ page_obj.next_page_number }}" data-section="break" aria-label="Next">
+                                                <span aria-hidden="true">»</span>
+                                            </a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}" data-page="{{ page_obj.paginator.num_pages }}" data-section="break" aria-label="Last">
+                                                <span aria-hidden="true">»»</span>
+                                            </a>
+                                        </li>
+                                        {% endif %}
+                                    </ul>
+                                </nav>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}
+
+{% block custom_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize real-time updates
+    let updateInterval;
+    const updateFrequency = 30000; // 30 seconds
+
+    function startBreakUpdates() {
+        // Clear any existing interval
+        if (updateInterval) {
+            clearInterval(updateInterval);
+        }
+        
+        // Initial update without loader
+        updateBreakData(false);
+        
+        // Set up periodic updates without loader
+        updateInterval = setInterval(() => updateBreakData(false), updateFrequency);
+    }
+
+    function updateBreakData(showLoader = true) {
+        const url = window.location.pathname + `?partial=breaks${getFilterParams()}`;
+        const containerId = '#break-entries-container';
+        const bodyId = '#break-entries-body';
+        const paginationId = '#break-entries-pagination';
+        
+        // Show loading state on table if specified
+        const tableContainer = document.querySelector(containerId);
+        if (showLoader) {
+            tableContainer.classList.add('table-loading');
+        }
+        
+        fetch(url, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.text())
+        .then(html => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            
+            // Update table body
+            const newBody = doc.querySelector(bodyId);
+            if (newBody) {
+                document.querySelector(bodyId).innerHTML = newBody.innerHTML;
+            }
+            
+            // Update pagination
+            const newPagination = doc.querySelector(paginationId);
+            const paginationContainer = document.querySelector(paginationId);
+            if (newPagination && paginationContainer) {
+                paginationContainer.innerHTML = newPagination.innerHTML;
+                // Reattach event handlers after updating pagination
+                attachPaginationHandlers();
+            } else if (paginationContainer) {
+                paginationContainer.innerHTML = '';
+            }
+            
+            // Update "On Break" counter
+            const onBreakCounter = doc.querySelector('.small-box.bg-gradient-secondary .inner h3');
+            if (onBreakCounter) {
+                document.querySelector('.small-box.bg-gradient-secondary .inner h3').textContent = onBreakCounter.textContent;
+            }
+        })
+        .catch(error => console.error('Error fetching break data:', error))
+        .finally(() => {
+            // Remove loading state
+            if (showLoader) {
+                tableContainer.classList.remove('table-loading');
+            }
+        });
+    }
+
+    // Function to handle pagination clicks
+    function handlePaginationClick(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const page = this.dataset.page;
+        const url = `?page=${page}${getFilterParams()}`;
+        const bodyId = '#break-entries-body';
+        const paginationId = '#break-entries-pagination';
+        const tableContainer = document.querySelector('#break-entries-container');
+        
+        // Show loading states
+        this.classList.add('btn-loading');
+        tableContainer.classList.add('table-loading');
+
+        fetch(url, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.text())
+        .then(html => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            
+            // Update table body
+            const newBody = doc.querySelector(bodyId);
+            if (newBody) {
+                document.querySelector(bodyId).innerHTML = newBody.innerHTML;
+            }
+            
+            // Update pagination
+            const newPagination = doc.querySelector(paginationId);
+            const paginationContainer = document.querySelector(paginationId);
+            if (newPagination && paginationContainer) {
+                paginationContainer.innerHTML = newPagination.innerHTML;
+                // Reattach event handlers after updating pagination
+                attachPaginationHandlers();
+            } else if (paginationContainer) {
+                paginationContainer.innerHTML = '';
+            }
+        })
+        .catch(error => console.error('Error:', error))
+        .finally(() => {
+            // Remove loading states
+            this.classList.remove('btn-loading');
+            tableContainer.classList.remove('table-loading');
+        });
+    }
+
+    // Function to attach event handlers to pagination links
+    function attachPaginationHandlers() {
+        document.querySelectorAll('#break-entries-pagination a.page-link').forEach(link => {
+            // Remove any existing click handlers to prevent duplicates
+            link.removeEventListener('click', handlePaginationClick);
+            // Add new click handler
+            link.addEventListener('click', handlePaginationClick);
+        });
+    }
+
+    // Helper function to preserve filter parameters
+    function getFilterParams() {
+        const params = new URLSearchParams(window.location.search);
+        let filterParams = '';
+        if (params.get('start_date')) {
+            filterParams += `&start_date=${params.get('start_date')}`;
+        }
+        if (params.get('end_date')) {
+            filterParams += `&end_date=${params.get('end_date')}`;
+        }
+        return filterParams;
+    }
+
+    // Initialize everything
+    function init() {
+        startBreakUpdates();
+        attachPaginationHandlers();
+        
+        // Remove existing filter form submission to avoid conflicts
+        $('#start_date, #end_date').off('change');
+        $('#start_date, #end_date').on('change', function() {
+            $('#filter-form').submit();
+        });
+    }
+
+    // Start the application
+    init();
+});
+</script>
+{% endblock custom_js %}
